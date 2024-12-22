@@ -22,6 +22,8 @@ struct Particle {
     void ClearForces();
 
     void Integrate(float dt);
+
+    static Particle* Create(float x, float y, float mass);
 };
 
 #endif

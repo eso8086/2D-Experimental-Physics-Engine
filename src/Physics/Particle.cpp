@@ -36,3 +36,9 @@ void Particle::Integrate(float dt) {
 
     ClearForces();
 }
+
+Particle* Particle::Create(float x, float y, float mass){
+    Particle* big = new Particle(x, y, mass);
+    big->radius = mass * 2;
+    return big;
+}

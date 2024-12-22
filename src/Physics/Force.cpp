@@ -1,5 +1,6 @@
 #include "./Force.h"
 
+//https://en.wikipedia.org/wiki/Drag_(physics)#The_drag_equation
 Vec2 Force::GenerateDragForce(const Particle& particle, float k) {
     Vec2 dragForce = Vec2(0, 0);
     if (particle.velocity.MagnitudeSquared() > 0) {

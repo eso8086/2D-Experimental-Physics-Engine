@@ -1,5 +1,8 @@
 #include "Application.h"
 #include "./Physics/Constants.h"
+#include "./Physics/Force.h"
+#include <cstdlib>
+#include <ctime>
 
 bool Application::IsRunning() {
     return running;
@@ -11,13 +14,12 @@ bool Application::IsRunning() {
 void Application::Setup() {
     running = Graphics::OpenWindow();
 
-    Particle* smallBall = new Particle(50, 100, 1.0);
-    smallBall->radius = 4;
-    particles.push_back(smallBall);
-    
-//    Particle* bigBall = new Particle(200, 100, 3.0);
-//    bigBall->radius = 12;
-//    particles.push_back(bigBall);
+    liquidRect.x = 0;
+    liquidRect.y = Graphics::windowHeight - Graphics::windowHeight / 3; //1/3 of height starting from bottom
+    liquidRect.w = Graphics::Width();
+    liquidRect.h = Graphics::Height();
+
+    std::srand(time(NULL));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -31,6 +33,14 @@ void Application::Input() {
                 running = false;
                 break;
 
+            case SDL_MOUSEBUTTONDOWN:
+                if (event.button.button == SDL_BUTTON_LEFT) {
+                  // generate random mass between 1 and 4
+                  float mass = 1.0 + static_cast<float>(std::rand()) / (static_cast<float>(RAND_MAX) / (4.0 - 1.0));;
+                  Particle* p = Particle::Create(event.button.x, event.button.y, mass);
+                  particles.push_back(p);
+                }
+                break;
             case SDL_KEYDOWN:
                 if (event.key.keysym.sym == SDLK_ESCAPE)
                     running = false;
@@ -86,6 +96,14 @@ void Application::Update() {
     timePreviousFrame = SDL_GetTicks();
 
 
+    // Apply a "dragForce" force to my particles
+    for (auto particle: particles) {
+        if(particle->position.y >= liquidRect.y){
+            Vec2 dragF = Force::GenerateDragForce(*particle, 0.05);
+            particle->AddForce(dragF);
+        }
+    }
+
     // Apply a "pushForce" force to my particles
     for (auto particle: particles) {
         Vec2 wind = Vec2(0.2 * PIXELS_PER_METER, 0.0);
@@ -134,10 +152,12 @@ void Application::Update() {
 void Application::Render() {
     Graphics::ClearScreen(0xFF056263);
 
+    //Draw the liquid area
+    Graphics::DrawFillRect(liquidRect.x + Graphics::windowWidth / 2, liquidRect.y + Graphics::windowHeight / 2, liquidRect.w, liquidRect.h, 0xFF6E3713); //blue
     for (auto particle: particles) {
         Graphics::DrawFillCircle(particle->position.x, particle->position.y, particle->radius, 0xFFFFFFFF);
     }
-    
+
     Graphics::RenderFrame();
 }
 
