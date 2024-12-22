@@ -1,5 +1,6 @@
 /.idea
 /build
+.ycm_extra_conf.py
 ##### Windows
 # Windows thumbnail cache files
 Thumbs.db
