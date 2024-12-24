@@ -3,6 +3,7 @@
 #include "./Physics/Force.h"
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
 
 bool Application::IsRunning() {
     return running;
@@ -13,20 +14,18 @@ bool Application::IsRunning() {
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Setup() {
     running = Graphics::OpenWindow();
-
     liquidRect.x = 0;
     liquidRect.y = Graphics::windowHeight - Graphics::windowHeight / 3; //1/3 of height starting from bottom
     liquidRect.w = Graphics::Width();
     liquidRect.h = Graphics::Height();
 
-    std::srand(time(NULL));
+    mouseCtx.position = Vec2(0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Input processing
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Input() {
-    SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
             case SDL_QUIT:
@@ -35,15 +34,33 @@ void Application::Input() {
 
             case SDL_MOUSEBUTTONDOWN:
                 if (event.button.button == SDL_BUTTON_LEFT) {
-                  // generate random mass between 1 and 4
-                  float mass = 1.0 + static_cast<float>(std::rand()) / (static_cast<float>(RAND_MAX) / (4.0 - 1.0));;
+                  mouseCtx.leftPressed = true;
+
+                  // generate random mass between 1 and 8
+                  int mass = 1 + std::rand() / (RAND_MAX / (8 - 1));
                   Particle* p = Particle::Create(event.button.x, event.button.y, mass);
                   particles.push_back(p);
                 }
+                if (event.button.button == SDL_BUTTON_RIGHT){
+                  mouseCtx.rightPressed = true;
+                }
                 break;
+            case SDL_MOUSEBUTTONUP:
+                if(event.button.button == SDL_BUTTON_LEFT){
+                  mouseCtx.leftPressed = false;
+                }
+                if (event.button.button == SDL_BUTTON_RIGHT){
+                  mouseCtx.rightPressed = true;
+                }
+                break;
+
+            case SDL_MOUSEMOTION:
+              mouseCtx.position = Vec2(event.motion.x, event.motion.y);
+              break;
+
             case SDL_KEYDOWN:
-                if (event.key.keysym.sym == SDLK_ESCAPE)
-                    running = false;
+                if(event.key.keysym.sym == SDLK_ESCAPE)
+                  running = false;
                 if(event.key.keysym.sym == SDLK_w){
                   pushForce.y = -50 * PIXELS_PER_METER;
                 }
@@ -96,33 +113,14 @@ void Application::Update() {
     timePreviousFrame = SDL_GetTicks();
 
 
-    // Apply a "dragForce" force to my particles
     for (auto particle: particles) {
         if(particle->position.y >= liquidRect.y){
-            Vec2 dragF = Force::GenerateDragForce(*particle, 0.05);
+            Vec2 dragF = Force::GenerateDragForce(*particle, 0.1);
             particle->AddForce(dragF);
         }
-    }
 
-    // Apply a "pushForce" force to my particles
-    for (auto particle: particles) {
-        Vec2 wind = Vec2(0.2 * PIXELS_PER_METER, 0.0);
-        particle->AddForce(pushForce);
-    }
-
-    // Apply a "wind" force to my particles
-    for (auto particle: particles) {
-        Vec2 wind = Vec2(0.2 * PIXELS_PER_METER, 0.0);
-        particle->AddForce(wind);
-    }
-
-    // Apply a "weight" force to my particles
-    for (auto particle: particles) {
         Vec2 weight = Vec2(0.0, particle->mass * 9.8 * PIXELS_PER_METER);
         particle->AddForce(weight);
-    }
-
-    for (auto particle: particles) {
         // Integrate the acceleration and velocity to estimate the new position
         particle->Integrate(deltaTime);
     }

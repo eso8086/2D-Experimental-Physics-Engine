@@ -24,9 +24,12 @@ bool Graphics::OpenWindow() {
         return false;
     }
     SDL_GetCurrentDisplayMode(0, &Graphics::displayMode);
-    windowWidth = Graphics::displayMode.w;
-    windowHeight = Graphics::displayMode.h;
-    window = SDL_CreateWindow("2D Physics Engine", 0, 0, windowWidth, windowHeight, SDL_WINDOW_BORDERLESS | SDL_WINDOW_FULLSCREEN);
+//    windowWidth = Graphics::displayMode.w;
+    windowWidth = 500;
+//    windowHeight = Graphics::displayMode.h;
+    windowHeight = 500;
+//    window = SDL_CreateWindow("2D Physics Engine", 0, 0, windowWidth, windowHeight, SDL_WINDOW_BORDERLESS | SDL_WINDOW_FULLSCREEN);
+    window = SDL_CreateWindow("2D Physics Engine", 0, 0, 500, 500, 0);
     if (!window) {
         std::cerr << "Error creating SDL window" << std::endl;
         return false;
